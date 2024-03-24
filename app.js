@@ -70,6 +70,27 @@ app.get('/task3/:taskId/status', (req, res) => {
         });
 });
 
+// List tasks sorted by due date (ascending or descending)
+app.get('/api/tasks', (req, res) => {
+    const { sortBy } = req.query;
+
+    let sortCriteria = {};
+    if (sortBy === 'asc') {
+        sortCriteria = { dueDate: 1 };
+    } else if (sortBy === 'desc') {
+        sortCriteria = { dueDate: -1 };
+    }
+
+    mytasks.find().sort(sortCriteria).toArray()
+        .then(tasks => {
+            res.status(200).json(tasks);
+        })
+        .catch(error => {
+            console.error('Error fetching sorted tasks:', error);
+            res.status(500).json({ error: 'Server error' });
+        });
+});
+
 
 // List completed tasks only
 app.get('/task/completed', async (req, res) => {
@@ -93,16 +114,16 @@ app.put('/task/:taskId/status', (req, res) => {
         { _id: new ObjectId(taskId) },
         { $set: { completed } }
     )
-    .then(result => {
-        if (result.matchedCount === 0) {
-            return res.status(404).json({ error: 'Task not found' });
-        }
-        res.status(200).json({ message: 'Task status updated successfully' });
-    })
-    .catch(err => {
-        console.error('Error updating task status:', err);
-        res.status(500).send("Server error");
-    });
+        .then(result => {
+            if (result.matchedCount === 0) {
+                return res.status(404).json({ error: 'Task not found' });
+            }
+            res.status(200).json({ message: 'Task status updated successfully' });
+        })
+        .catch(err => {
+            console.error('Error updating task status:', err);
+            res.status(500).send("Server error");
+        });
 });
 
 
